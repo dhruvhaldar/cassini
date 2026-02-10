@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.log
+*.png
+.pytest_cache/
+venv/
+env/
+.DS_Store
+api/test_server.py
+verify_frontend.py
