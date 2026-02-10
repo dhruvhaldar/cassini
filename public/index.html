@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cassini Simulation</title>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; background: #000; color: #fff; }
+        #controls { position: absolute; top: 10px; left: 10px; background: rgba(50,50,50,0.8); padding: 10px; border-radius: 5px; }
+        input { width: 50px; background: #333; color: #fff; border: 1px solid #555; }
+        button { background: #0070f3; color: #fff; border: none; padding: 5px 10px; cursor: pointer; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+    <div id="controls">
+        <h3>Cassini Control</h3>
+        <div>
+            <label>Mode:</label>
+            <select id="mode" style="background:#333; color:#fff;">
+                <option value="none">Torque Free</option>
+                <option value="detumble">Detumble</option>
+                <option value="pointing">Pointing</option>
+            </select>
+        </div>
+        <br>
+        <button onclick="runSim()">Run Simulation</button>
+        <div id="status" style="margin-top:5px;">Ready</div>
+    </div>
+    <script>
+        // Three.js Setup
+        const scene = new THREE.Scene();
+        // Add stars or background
+        scene.background = new THREE.Color(0x111111);
+
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Spacecraft Body (Cuboid)
+        const geometry = new THREE.BoxGeometry(1, 1.5, 2);
+        // Different colors for faces to visualize orientation
+        const materials = [
+            new THREE.MeshBasicMaterial({ color: 0xff0000 }), // Right
+            new THREE.MeshBasicMaterial({ color: 0x00ff00 }), // Left
+            new THREE.MeshBasicMaterial({ color: 0x0000ff }), // Top
+            new THREE.MeshBasicMaterial({ color: 0xffff00 }), // Bottom
+            new THREE.MeshBasicMaterial({ color: 0x00ffff }), // Front
+            new THREE.MeshBasicMaterial({ color: 0xff00ff })  // Back
+        ];
+        const cube = new THREE.Mesh(geometry, materials);
+        scene.add(cube);
+
+        // Axes
+        const axesHelper = new THREE.AxesHelper( 5 );
+        scene.add( axesHelper );
+
+        // Light
+        const ambientLight = new THREE.AmbientLight( 0x404040 );
+        scene.add( ambientLight );
+        const directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+        scene.add( directionalLight );
+
+        camera.position.z = 8;
+        camera.position.y = 2;
+        camera.lookAt(0,0,0);
+
+        let simData = null;
+        let frameIndex = 0;
+        let isPlaying = false;
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (isPlaying && simData && frameIndex < simData.time.length) {
+                const q = simData.quat[frameIndex];
+                // Three.js quaternion: x, y, z, w
+                // My quaternion: w, x, y, z (q0, q1, q2, q3)
+                // Map: x=q[1], y=q[2], z=q[3], w=q[0]
+                cube.quaternion.set(q[1], q[2], q[3], q[0]);
+                frameIndex++;
+
+                // Loop simulation
+                if (frameIndex >= simData.time.length) {
+                    frameIndex = 0;
+                }
+            }
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        async function runSim() {
+            const mode = document.getElementById('mode').value;
+            const status = document.getElementById('status');
+            status.innerText = "Simulating...";
+
+            // Configuration based on mode
+            let payload = {
+                inertia: [100, 150, 200],
+                omega_init: [0.1, 0.1, 0.1],
+                q_init: [1, 0, 0, 0],
+                duration: 20.0,
+                dt: 0.05,
+                control_mode: mode,
+                gains: [1.0, 1.0],
+                target_quat: [1, 0, 0, 0]
+            };
+
+            if (mode === 'none') {
+                // Torque free unstable axis spin
+                payload.omega_init = [0.1, 2.0, 0.1];
+                payload.duration = 40.0;
+            } else if (mode === 'detumble') {
+                // High initial spin
+                payload.omega_init = [1.0, 1.0, 1.0];
+                payload.gains = [10.0, 0]; // Gain for RateDamper
+                payload.duration = 40.0;
+            } else if (mode === 'pointing') {
+                // Pointing maneuver
+                payload.q_init = [0, 1, 0, 0]; // 180 deg rotation (X axis) -> 0,1,0,0 is q1=1, others 0?
+                // Wait. 180 deg about X.
+                // q = [cos(90), sin(90), 0, 0] = [0, 1, 0, 0]. Correct.
+                // Target is Identity [1,0,0,0].
+                payload.gains = [10.0, 20.0]; // Kp, Kd
+                payload.omega_init = [0, 0, 0];
+                payload.duration = 30.0;
+            }
+
+            try {
+                // In local dev, API might be on localhost:8000.
+                // If this file is opened directly, relative path won't work.
+                // But let's assume served from same origin or setup proxy.
+                // For Vercel, relative path '/api/simulate' works.
+                // If running locally, you might need to change this or run server to serve this file.
+
+                const res = await fetch('/api/simulate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) throw new Error("API Error");
+
+                const data = await res.json();
+                simData = data;
+                frameIndex = 0;
+                isPlaying = true;
+                status.innerText = "Playing";
+            } catch (e) {
+                console.error(e);
+                status.innerText = "Error: " + e.message;
+            }
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', onWindowResize, false);
+        function onWindowResize(){
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+        }
+    </script>
+</body>
+</html>
