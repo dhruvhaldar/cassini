@@ -70,4 +70,6 @@ def run_simulation(req: SimulationRequest):
 # Mount static files at root as fallback after API routes are defined
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 public_dir = os.path.join(root_dir, "public")
-app.mount("/", StaticFiles(directory=public_dir, html=True), name="public")
+if os.path.exists(public_dir):
+    app.mount("/", StaticFiles(directory=public_dir, html=True), name="public")
+
