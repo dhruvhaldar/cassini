@@ -5,6 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import numpy as np
 from cassini.dynamics import RigidBody
@@ -21,6 +22,17 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+def read_index():
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return FileResponse(os.path.join(root_dir, "public", "index.html"))
+
+@app.get("/style.css")
+def read_style():
+    root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return FileResponse(os.path.join(root_dir, "public", "style.css"))
+
 
 class SimulationRequest(BaseModel):
     inertia: list[float]
