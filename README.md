@@ -16,15 +16,6 @@ This project covers the full kinematics and dynamics spectrum required by the co
 | **Control** | *Feedback Control Laws* | Detumbling (B-dot), Pointing (PD Controller on Quaternions), and Eigenaxis rotations. |
 | **Simulation** | *Prediction & Evaluation* | 4th Order Runge-Kutta (RK4) integrator for propagating attitude state over time. |
 
-## 🚀 Deployment (Vercel)
-
-This project uses **FastAPI** to expose the physics engine as a serverless function.
-
-1. **Fork** this repository.
-2. Import the project into your **Vercel** dashboard.
-3. Vercel will automatically detect `api/index.py` and `requirements.txt`.
-4. Your simulation API will be live at `https://your-project.vercel.app/api/simulate`.
-
 ## 📊 Artifacts & Control Analysis
 
 ### 1. Torque-Free Motion (The Polhode Plot)
@@ -56,10 +47,10 @@ results = sim.run_open_loop(duration=100)
 
 **Mathematical Basis:**
 We select a Lyapunov candidate function:
+$$V(\boldsymbol{\omega}, q_0) = \frac{1}{2} \boldsymbol{\omega}^T \boldsymbol{I} \boldsymbol{\omega} + 2 k_p (1 - q_0)$$
 
+The control law $\boldsymbol{u} = -k_p \boldsymbol{q}_e - k_d \boldsymbol{\omega}$ ensures $\dot{V} = -\boldsymbol{\omega}^T k_d \boldsymbol{\omega} \le 0$.
 
-
-The control law  ensures .
 
 **Code:**
 
@@ -128,11 +119,12 @@ def test_detumbling_energy_decay():
 
 ```
 
+## 🚀 Deployment (Vercel)
+
+This project uses **FastAPI** to expose the physics engine as a serverless function.
+
 ## ⚖️ License
 
 **MIT License**
 
-Copyright (c) 2026 [Your Name]
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files... [Standard MIT Text]
+Copyright (c) 2026 Dhruv Haldar
