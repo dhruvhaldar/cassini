@@ -39,6 +39,8 @@ results = sim.run_open_loop(duration=100)
 
 **Artifact Output:**
 
+![Figure 1: Polhode Plot](polhode_plot.png)
+
 > *Figure 1: The "Polhode" curve. The angular velocity vector traces a closed curve on the intersection of the Kinetic Energy ellipsoid and the Angular Momentum sphere. The stability around the minor and major axes (and instability around the intermediate axis) is clearly visible.*
 
 ### 2. Lyapunov Stability Proof (Rest-to-Rest Maneuver)
@@ -71,6 +73,8 @@ results = sim.run_closed_loop(controller, target_quat=Quaternion([1, 0, 0, 0]), 
 
 **Artifact Output:**
 
+![Figure 2: Lyapunov Control Convergence](lyapunov_plot.png)
+
 > *Figure 2: Control Convergence. Top subplot: Angular velocity . Bottom subplot: Quaternion error vector . The asymptotic decay confirms global asymptotic stability for the chosen gains.*
 
 ### 3. Gravity Gradient Stabilization
@@ -78,6 +82,8 @@ results = sim.run_closed_loop(controller, target_quat=Quaternion([1, 0, 0, 0]), 
 *Simulates the passive stabilization of a satellite using Earth's gravity gradient.*
 
 **Artifact Output:**
+
+![Figure 3: Gravity Gradient Stabilization](gravity_gradient_plot.png)
 
 > *Figure 3: Pitch and Roll oscillation. The spacecraft oscillates around the local vertical (nadir) vector like a pendulum, bounded by the gravity gradient torque .*
 
