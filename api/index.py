@@ -3,9 +3,9 @@ import os
 # Add project root to sys.path to allow imports from cassini/
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 import numpy as np
 from cassini.dynamics import RigidBody
@@ -26,12 +26,19 @@ app.add_middleware(
 @app.get("/")
 def read_index():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return FileResponse(os.path.join(root_dir, "public", "index.html"))
+    path = os.path.join(root_dir, "public", "index.html")
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return HTMLResponse(content=content)
 
 @app.get("/style.css")
 def read_style():
     root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    return FileResponse(os.path.join(root_dir, "public", "style.css"))
+    path = os.path.join(root_dir, "public", "style.css")
+    with open(path, "r", encoding="utf-8") as f:
+        content = f.read()
+    return Response(content=content, media_type="text/css")
+
 
 
 class SimulationRequest(BaseModel):
