@@ -1,17 +1,9 @@
 {
-  "buildCommand": "echo 'Build skipped'",
+  "buildCommand": null,
   "rewrites": [
     {
       "source": "/api/(.*)",
       "destination": "/api/index.py"
-    },
-    {
-      "source": "/style.css",
-      "destination": "/style.css"
-    },
-    {
-      "source": "/",
-      "destination": "/index.html"
     }
   ]
 }
