@@ -12,6 +12,8 @@ from cassini.simulation import Simulation
 from cassini.control import LyapunovController, RateDamper
 from cassini.kinematics import Quaternion
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI()
 
 app.add_middleware(
@@ -21,6 +23,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+
 
 
 
@@ -61,3 +66,8 @@ def run_simulation(req: SimulationRequest):
         "quat": [arr.tolist() for arr in history['quat']],
         "energy": history['energy']
     }
+
+# Mount static files at root as fallback after API routes are defined
+root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+public_dir = os.path.join(root_dir, "public")
+app.mount("/", StaticFiles(directory=public_dir, html=True), name="public")

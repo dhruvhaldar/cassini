@@ -125,9 +125,44 @@ def test_detumbling_energy_decay():
 
 ```
 
+## 💻 Local Development & Build
+
+### 1. Setup Environment
+Clone the repository and install the required packages:
+```bash
+pip install -r requirements.txt
+```
+
+### 2. Run the API Server Locally
+Launch the FastAPI microservice using `uvicorn`:
+```bash
+uvicorn api.index:app --reload
+```
+Once running, you can access the interactive Swagger API docs at `http://127.0.0.1:8000/docs`.
+
+### 3. Generate Simulation Plots
+Run the scripts in the `examples/` directory to run simulations and generate the analysis plots:
+```bash
+# Set PYTHONPATH to include the project root
+$env:PYTHONPATH="."  # Windows PowerShell
+# or: set PYTHONPATH=.  # Windows CMD
+# or: export PYTHONPATH=.  # macOS/Linux
+
+python examples/plot_torque_free.py
+python examples/plot_lyapunov.py
+python examples/plot_gravity_gradient.py
+```
+
+### 4. Run Tests
+Verify the installation by running the test suite:
+```bash
+python -m pytest
+```
+
 ## 🚀 Deployment (Vercel)
 
 This project uses **FastAPI** to expose the physics engine as a serverless function.
+
 
 ## ⚖️ License
 
