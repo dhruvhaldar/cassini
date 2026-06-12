@@ -67,9 +67,43 @@ def run_simulation(req: SimulationRequest):
         "energy": history['energy']
     }
 
+@app.get("/api/debug")
+def debug_info():
+    import os
+    possible_paths = {
+        "cwd": os.getcwd(),
+        "__file__": __file__,
+        "cwd_public": os.path.abspath("public"),
+        "cwd_public_exists": os.path.exists(os.path.abspath("public")),
+        "file_parent_public": os.path.join(os.path.dirname(os.path.abspath(__file__)), "public"),
+        "file_parent_public_exists": os.path.exists(os.path.join(os.path.dirname(os.path.abspath(__file__)), "public")),
+        "file_parent_parent_public": os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public"),
+        "file_parent_parent_public_exists": os.path.exists(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public")),
+    }
+    try:
+        possible_paths["cwd_contents"] = os.listdir(os.getcwd())
+    except Exception as e:
+        possible_paths["cwd_contents_error"] = str(e)
+    try:
+        possible_paths["file_parent_contents"] = os.listdir(os.path.dirname(os.path.abspath(__file__)))
+    except Exception as e:
+        possible_paths["file_parent_contents_error"] = str(e)
+    return possible_paths
+
 # Mount static files at root as fallback after API routes are defined
-root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-public_dir = os.path.join(root_dir, "public")
-if os.path.exists(public_dir):
+possible_dirs = [
+    os.path.join(os.getcwd(), "public"),
+    os.path.abspath("public"),
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), "public"),
+    os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "public"),
+]
+public_dir = None
+for d in possible_dirs:
+    if os.path.exists(d) and os.path.isdir(d):
+        public_dir = d
+        break
+
+if public_dir:
     app.mount("/", StaticFiles(directory=public_dir, html=True), name="public")
+
 
